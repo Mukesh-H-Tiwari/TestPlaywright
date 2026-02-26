@@ -1,0 +1,15 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+
+<suite name="Playwright Automation Suite">
+
+    <parameter name="browser" value="chrome"/>
+
+    <test name="Regression Tests">
+
+        <classes>
+            <class name="com.example.automation.tests.Home.VerifyHomePageTest"/>
+        </classes>
+
+    </test>
+
+</suite>
