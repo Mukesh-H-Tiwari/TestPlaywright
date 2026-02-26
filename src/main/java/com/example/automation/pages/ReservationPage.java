@@ -2,6 +2,7 @@ package com.example.automation.pages;
 
 import com.example.automation.utils.BasePage;
 import com.example.automation.utils.DateUtils;
+import com.example.automation.utils.TestConstants;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.WaitForSelectorState;
@@ -106,7 +107,7 @@ public class ReservationPage extends BasePage {
     }
 
     public String getBookingConfirmationMessage() {
-        cssTagAReturnToHome.waitFor();
+        waitForElementToBeVisible(cssTagAReturnToHome, TestConstants.DEFAULT_TIMEOUT);
         return cssTagH2BookingConfirmation.textContent().trim();
     }
 
@@ -169,46 +170,6 @@ public class ReservationPage extends BasePage {
         return this;
     }
 
-    /**
-     * Returns true if the given day on the currently displayed calendar month
-     * has no booked events (i.e. the day is available).
-     */
-    public boolean isDayAvailable(LocalDate date) {
-        String dayText = String.valueOf(date.getDayOfMonth());
-        Locator dayCell = calendarDateCells
-                .filter(new Locator.FilterOptions().setHasText(dayText)).first();
-        String cellClass = dayCell.getAttribute("class");
-        boolean isOffRange   = cellClass != null && cellClass.contains("rbc-off-range");
-        long    bookedEvents = dayCell.locator(".rbc-event")
-                .filter(new Locator.FilterOptions().setHasNotText("Selected"))
-                .count();
-        return !isOffRange && bookedEvents == 0;
-    }
 
-    /**
-     * Clicks a specific day cell on the currently displayed calendar month.
-     */
-    public ReservationPage selectCalendarDate(LocalDate date) {
-        String dayText = String.valueOf(date.getDayOfMonth());
-        calendarDateCells
-                .filter(new Locator.FilterOptions().setHasText(dayText))
-                .first().click();
-        return this;
-    }
 
-    /**
-     * Iterates the shuffled list of future dates from DateUtils.
-     * For each candidate, reads rbc-toolbar-label, clicks Next or Back to reach
-     * that month, then checks isDayAvailable(). Returns the first available date.
-     * Throws if no available date is found across the entire list.
-     */
-    public LocalDate findFirstAvailableDate() {
-        for (LocalDate candidate : DateUtils.getShuffledFutureDates()) {
-            navigateCalendarToMonth(candidate);
-            if (isDayAvailable(candidate)) {
-                return candidate;
-            }
-        }
-        throw new RuntimeException("No available date found across all predefined future dates.");
-    }
 }

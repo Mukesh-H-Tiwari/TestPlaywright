@@ -11,6 +11,7 @@ Automation suite for [https://automationintesting.online/](https://automationint
 - [Prerequisites](#prerequisites)
 - [Running the tests](#running-the-tests)
 - [Screenshots on failure](#screenshots-on-failure)
+- [HTML Test Report (ExtentReports)](#html-test-report-extentreports)
 - [Key design decisions](#key-design-decisions)
 - [Test cases & defects](#test-cases--defects)
 - [Time spent](#time-spent)
@@ -144,6 +145,24 @@ The folder is created automatically if it doesn't exist. Screenshots are timesta
 
 ---
 
+## HTML Test Report (ExtentReports)
+
+After every run an interactive HTML report is generated at:
+
+```
+target/extent-reports/ExtentReport_<yyyyMMdd_HHmmss>.html
+```
+
+Open it in any browser — no server needed. The report includes:
+
+- Pass / Fail / Skip status per test with full stack trace on failure
+- Failure screenshots embedded directly in the report
+- System info (browser, framework, app URL)
+- Test groups / categories
+- Execution timestamp and duration
+
+---
+
 ## Key design decisions
 
 **Fresh Playwright stack per test (`@BeforeMethod`)**
@@ -203,6 +222,8 @@ GitHub Copilot (via JetBrains plugin) was used during development.
 **Where it helped:**
 - Diagnosed and suggested fixes for Playwright-specific teardown errors (`TargetClosedError`, `ERR_ABORTED`, `Cannot find object to call __adopt__`). Root causes were understood and verified manually before applying fixes.
 - Suggested `DOMCONTENTLOADED` as the navigation wait strategy after the `ERR_ABORTED` pattern was explained.
+- Provided guidance on integrating ExtentReports as a TestNG listener — including wiring `ExtentSparkReporter`, attaching screenshots to failed test nodes, and registering the listener in both `testNg.xml` and `maven-surefire-plugin`.
+- Provided guidance on the screenshot-on-failure mechanism — identifying that `page.screenshot()` throws `PlaywrightException` (not `IOException`), and that the capture must happen before `playwright.close()` is called in `tearDown`.
 - Wrote first drafts of README, TEST_CASES.md, and DEFECTS.md.
 - Assisted with adding grouped comments to test methods.
 - Created date-related utility methods in `DateUtils.java` — specifically the logic to generate a random future date and the calendar navigation method (`navigateCalendarToMonth`) that computes how many times to click **Next** to reach the target month from the current displayed month.

@@ -8,6 +8,9 @@ public class TestConstants {
 
     private TestConstants() { /* utility class — no instances */ }
 
+    // ---------- Default constants ----------
+    public static final int DEFAULT_TIMEOUT= 30;
+
     // ---------- Room pricing ----------
     public static final int SINGLE_ROOM_PRICE_PER_NIGHT = 100;
     public static final int DOUBLE_ROOM_PRICE_PER_NIGHT = 150;

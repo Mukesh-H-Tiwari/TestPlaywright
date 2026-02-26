@@ -43,9 +43,9 @@ public class VerifyHomePageTest extends BaseTest {
 
         // Verify check-in and check-out dates are correctly populated
         Assert.assertEquals(homePage.getCheckInDate(),
-                LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern(TestConstants.DATE_FORMAT)), "Check-in date mismatch.");
+                randomFutureDate.format(DateTimeFormatter.ofPattern(TestConstants.DATE_FORMAT)), "Check-in date mismatch.");
         Assert.assertEquals(homePage.getCheckOutDate(),
-                LocalDate.now().plusDays(5).format(DateTimeFormatter.ofPattern(TestConstants.DATE_FORMAT)), "Check-out date mismatch.");
+                randomFutureDate.plusDays(4).format(DateTimeFormatter.ofPattern(TestConstants.DATE_FORMAT)), "Check-out date mismatch.");
 
         // Search for available rooms and verify all room types are listed
         homePage.clickCheckAvailability();

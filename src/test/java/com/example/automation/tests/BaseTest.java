@@ -5,7 +5,6 @@ import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -62,7 +61,7 @@ public class BaseTest {
                 java.nio.file.Path dest = dir.resolve(timestamp + "_" + result.getName() + ".png");
                 page.screenshot(new Page.ScreenshotOptions().setPath(dest).setFullPage(true));
                 System.out.println("[Screenshot saved] " + dest.toAbsolutePath());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 System.err.println("[Screenshot failed] " + e.getMessage());
             }
         }
