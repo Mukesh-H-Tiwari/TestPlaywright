@@ -45,5 +45,8 @@ public class TestConstants {
     public static final String ALERT_EMAIL_BLANK            = "must not be empty";
     public static final String ALERT_SUBJECT_SIZE           = "size must be between 3 and 30";
     public static final String ALERT_PHONE_BLANK            = "must not be empty";
+
+    // ---------- Other constants can be added here as needed ----------
+    public static final String BOOK_NOW_BUTTON_TEXT = "Book now";
 }
 

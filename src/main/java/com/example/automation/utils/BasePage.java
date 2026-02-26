@@ -10,8 +10,6 @@ public class BasePage {
         this.page = page;
     }
 
-
-    // Get Current Page Url
     public String getCurrentUrl() {
         return page.url();
     }

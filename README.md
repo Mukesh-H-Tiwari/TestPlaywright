@@ -1,39 +1,62 @@
 # Playwright Automation – Shady Meadows B&B
 
-Automation suite for [https://automationintesting.online/](https://automationintesting.online/) using Playwright (Java) + TestNG.
+Automation suite for [https://automationintesting.online/](https://automationintesting.online/) using **Playwright (Java) + TestNG**.
+
+---
+
+## Table of Contents
+
+- [What's covered](#whats-covered)
+- [Project structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Running the tests](#running-the-tests)
+- [Screenshots on failure](#screenshots-on-failure)
+- [Key design decisions](#key-design-decisions)
+- [Test cases & defects](#test-cases--defects)
+- [Time spent](#time-spent)
+- [AI assistance](#ai-assistance)
 
 ---
 
 ## What's covered
 
-I explored the app manually first and picked the flows that matter most from a real user's perspective.
+Explored the app manually first and picked the two flows that matter most from a real user's perspective.
 
-### TC_Book_Room_Success — end-to-end booking journey
+### TC01 · TC_Book_Room_Success — end-to-end booking journey
 
--   Lands on the home page, verifies the header
--   Enters check-in / check-out dates and confirms the inputs reflect what was typed
--   Checks the list of available rooms matches expectations
--   Books a Double room and lands on the reservation page
--   Confirms the room title, date selection UI, and URL query parameters
--   Validates the total price (`£150/night × 4 nights + fees`) against the UI
--   Fills in guest details and submits
--   Asserts the confirmation message and the dates on the confirmation card
--   Clicks "Return Home" and confirms we're back on the home page
+| Step | What's verified |
+|---|---|
+| Generate a random future date | Random date used as check-in across the test |
+| Navigate to home page | Header text matches `"Shady Meadows B&B"` |
+| Enter check-in / check-out dates | Both date inputs accept the formatted values |
+| Verify dates are populated | Actual input values match the entered dates |
+| Search for available rooms | Room list returns `["Single", "Double", "Suite"]` |
+| Select Double room, navigate calendar | Reservation page loads; calendar scrolls to the target month |
+| Verify reservation page title & selection | Room title and date selection are reflected in the UI |
+| Verify URL query parameters | URL contains correct check-in and check-out date strings |
+| Verify total price | `£150 × 4 nights + £25 cleaning fee + £15 service fee = £640` matches displayed total |
+| Fill guest details and submit | Form accepts First Name, Last Name, Email, Phone and submits |
+| Verify confirmation | Confirmation message and date range match expected values |
 
-### TC_Book_Room_Form_Validation — progressive field validation (negative)
+### TC02 · TC_Book_Room_Form_Validation — progressive field validation (negative)
 
--   Submits the reservation form completely empty, checks all alert messages are present
--   Fills fields one at a time (first name → last name → email → phone), re-submits after each step
--   Confirms the right alerts disappear as each field is filled
--   Checks phone number length boundary (too long)
+| Step | What's verified |
+|---|---|
+| Navigate, enter dates, search | Home page loads and room search completes |
+| Select Single room | Reservation page loads |
+| Submit completely empty form | All 7 required-field alerts are shown simultaneously |
+| Enter first name, re-submit | First-name alert clears; all other alerts remain |
+| Enter last name, re-submit | Last-name alerts clear; email and phone alerts remain |
+| Enter email, re-submit | Email alert clears; only phone-related alerts remain |
+| Enter oversized phone number, re-submit | Phone-size validation alert is triggered |
 
-### Bugs documented in test comments
+### Bugs found
 
-| Bug | Test | Description |
+| ID | Affected TC | Description |
 |---|---|---|
-| Past date booking | `TC_Book_Room_Success` | App accepts past check-in dates — no frontend guard |
-| Random alert order | `TC_Book_Room_Form_Validation` | Alert messages appear in non-deterministic order |
-| Generic alert text | `TC_Book_Room_Form_Validation` | `"must not be empty"` doesn't say which field it refers to |
+| [DEF-01](DEFECTS.md#def-01--app-accepts-past-check-in-dates-no-frontend-validation) | TC01 | App accepts past check-in dates — no frontend guard prevents booking with a past date |
+| [DEF-02](DEFECTS.md#def-02--validation-alert-messages-displayed-in-non-deterministic-order) | TC02 | Validation alert messages are displayed in a non-deterministic order on the UI |
+| [DEF-03](DEFECTS.md#def-03--validation-alert-messages-are-too-generic-field-not-identified) | TC02 | Alert text is too generic — `"must not be empty"` does not identify which field it refers to |
 
 ---
 
@@ -43,18 +66,25 @@ I explored the app manually first and picked the flows that matter most from a r
 src/
   main/java/com/example/automation/
     pages/
-      HomePage.java          ← search, date entry, room listing
-      ReservationPage.java   ← booking form, confirmation card, alert messages
+      HomePage.java            ← search, date entry, room listing
+      ReservationPage.java     ← booking form, confirmation card, alert messages
     utils/
-      BasePage.java          ← shared base (holds Page reference, getCurrentUrl)
-      urlHelper.java         ← base URL constant
+      BasePage.java            ← shared base (holds Page reference, getCurrentUrl)
+      DateUtils.java           ← random future date generation
+      TestConstants.java       ← all test data constants (prices, alerts, guest details)
+      urlHelper.java           ← base URL constant
 
   test/java/com/example/automation/
-    tests/Home/
-      VerifyHomePageTest.java  ← both test cases + setup/teardown + screenshot on failure
+    tests/
+      BaseTest.java            ← Playwright lifecycle setup / teardown + screenshot on failure
+      Home/
+        VerifyHomePageTest.java ← TC01 and TC02
 
-testNg.xml    ← suite config
+testNg.xml     ← suite config
 pom.xml
+README.md
+TEST_CASES.md  ← full step-by-step test case specs
+DEFECTS.md     ← all bugs with reproduction steps and expected behaviour
 ```
 
 Page Object Model throughout. Every page method returns `this` so steps chain naturally.
@@ -63,9 +93,11 @@ Page Object Model throughout. Every page method returns `this` so steps chain na
 
 ## Prerequisites
 
--   **Java 8** — tested with Amazon Corretto 1.8.0_472
--   **Maven 3.6+**
--   **Google Chrome** installed at the default path: `C:\Program Files\Google\Chrome\Application\chrome.exe`
+| Requirement | Version tested |
+|---|---|
+| Java | 8 (Amazon Corretto 1.8.0_472) |
+| Maven | 3.6+ |
+| Google Chrome | Installed at default path: `C:\Program Files\Google\Chrome\Application\chrome.exe` |
 
 Playwright downloads its own browser driver on first run — nothing else to install.
 
@@ -75,7 +107,7 @@ Playwright downloads its own browser driver on first run — nothing else to ins
 
 **From IntelliJ:**
 
-Right-click `testNg.xml` → Run. Or right-click any test method directly.
+Right-click `testNg.xml` → **Run**. Or right-click any test method directly.
 
 **Full suite from terminal:**
 
@@ -83,7 +115,7 @@ Right-click `testNg.xml` → Run. Or right-click any test method directly.
 mvn clean test
 ```
 
-**Single test method:**
+**Single test by method name:**
 
 ```bash
 mvn test -Dtest=VerifyHomePageTest#verifyUserIsAbleToBookTheRoomSuccessfully
@@ -94,9 +126,9 @@ The browser runs in **headed mode** — Chrome opens visibly, maximized, using t
 
 ---
 
-## Test execution report / screenshots
+## Screenshots on failure
 
-On test failure, a full-page screenshot is automatically captured and saved to:
+On any test failure a full-page screenshot is automatically captured and saved to:
 
 ```
 target/screenshots/<yyyyMMdd_HHmmss>_<testName>.png
@@ -108,34 +140,45 @@ Example:
 target/screenshots/20260226_143022_verifyUserIsAbleToBookTheRoomSuccessfully.png
 ```
 
-The `target/screenshots/` folder is created automatically if it doesn't exist. Screenshots are timestamped so multiple failures in the same run don't overwrite each other.
+The folder is created automatically if it doesn't exist. Screenshots are timestamped so multiple failures in the same run never overwrite each other.
 
 ---
 
-## Key decisions
+## Key design decisions
 
-**Full Playwright stack created per test (`@BeforeMethod`)** `Playwright → Browser → BrowserContext → Page` is created fresh for every test and disposed in `@AfterMethod`. Sharing a browser or context across tests caused cross-thread object errors (`TargetClosedError`, `Cannot find object to call __adopt__`).
+**Fresh Playwright stack per test (`@BeforeMethod`)**
+`Playwright → Browser → BrowserContext → Page` is created fresh for every test and fully disposed in `@AfterMethod`. Sharing a browser or context across tests caused cross-thread object errors (`TargetClosedError`, `Cannot find object to call __adopt__`).
 
-**`playwright.close()` only in teardown — never `browser.close()` separately** Calling `browser.close()` before `playwright.close()` double-closes the browser and crashes the IPC pipe for the next test. `playwright.close()` disposes everything it owns in the right order.
+**`playwright.close()` only — never `browser.close()` separately**
+Calling `browser.close()` before `playwright.close()` double-closes the browser and crashes the IPC pipe for the next test. `playwright.close()` disposes everything it owns in the correct order.
 
-**`DOMCONTENTLOADED` instead of `LOAD` on navigation** The app fires background XHR calls after `load`. Waiting for full `load` caused `net::ERR_ABORTED` race conditions when the context closed mid-flight. `domcontentloaded` + an explicit `waitFor()` on the header is more stable.
+**`DOMCONTENTLOADED` instead of `LOAD` for navigation**
+The app fires background XHR calls after `load`. Waiting for full `load` caused `net::ERR_ABORTED` race conditions when the context closed mid-flight. `domcontentloaded` + an explicit `waitFor()` on the header element is more stable.
 
-**Screenshot on failure wired into `@AfterMethod`** `ITestResult.getStatus()` is checked in `tearDown(ITestResult result)`. If the test failed, a full-page screenshot is taken before `playwright.close()` is called, so the page is still alive when the screenshot runs.
+**Screenshot taken before `playwright.close()`**
+`ITestResult.getStatus()` is checked in `tearDown(ITestResult result)`. The screenshot runs before `playwright.close()` so the page is still alive when the capture executes.
 
-**Fluent page methods** Page methods return `this` so test steps read as a sequence:
+**Fluent page methods**
+All page methods return `this`, making test steps read as a natural sequence:
 
 ```java
 reservationPage.clickReserveButton()
                .enterFirstName("John")
                .enterLastName("Doe")
+               .enterEmail("JohnDoe@cba.com")
+               .enterPhoneNumber("56345678910")
                .clickReserveNow();
 ```
 
+**Centralised test data (`TestConstants.java`)**
+All prices, alert message strings, guest details, room names, and date formats live in one file. If the app changes any copy or pricing, only `TestConstants.java` needs updating.
+
 ---
 
-## Test cases
+## Test cases & defects
 
-Detailed test case steps and expected results are documented in [`TEST_CASES.md`](TEST_CASES.md).
+- Full step-by-step test case specs → [`TEST_CASES.md`](TEST_CASES.md)
+- All bugs with reproduction steps and expected behaviour → [`DEFECTS.md`](DEFECTS.md)
 
 ---
 
@@ -145,11 +188,11 @@ Detailed test case steps and expected results are documented in [`TEST_CASES.md`
 |---|---|
 | Exploratory testing of the app | ~30 min |
 | Framework setup, pom, folder structure | ~20 min |
-| Writing page objects (HomePage, ReservationPage) | ~45 min |
+| Writing page objects (`HomePage`, `ReservationPage`) | ~45 min |
 | Writing test cases | ~60 min |
 | Debugging browser lifecycle / teardown issues | ~40 min |
-| README | ~15 min |
-| **Total** | **~3h 30min** |
+| Writing README, TEST_CASES.md, DEFECTS.md | ~25 min |
+| **Total** | **~3h 40min** |
 
 ---
 
@@ -158,15 +201,16 @@ Detailed test case steps and expected results are documented in [`TEST_CASES.md`
 GitHub Copilot (via JetBrains plugin) was used during development.
 
 **Where it helped:**
-
--   Diagnosed and suggested fixes for Playwright-specific teardown errors (`TargetClosedError`, `ERR_ABORTED`, `Cannot find object to call __adopt__`). Root causes were understood and verified manually before applying fixes.
--   Suggested `DOMCONTENTLOADED` as the navigation wait strategy after the `ERR_ABORTED` pattern was explained.
--   Wrote the first draft of this README.
+- Diagnosed and suggested fixes for Playwright-specific teardown errors (`TargetClosedError`, `ERR_ABORTED`, `Cannot find object to call __adopt__`). Root causes were understood and verified manually before applying fixes.
+- Suggested `DOMCONTENTLOADED` as the navigation wait strategy after the `ERR_ABORTED` pattern was explained.
+- Wrote first drafts of README, TEST_CASES.md, and DEFECTS.md.
+- Assisted with adding grouped comments to test methods.
+- Created date-related utility methods in `DateUtils.java` — specifically the logic to generate a random future date and the calendar navigation method (`navigateCalendarToMonth`) that computes how many times to click **Next** to reach the target month from the current displayed month.
 
 **What was done without AI:**
+- All exploratory testing and flow identification
+- Locator selection and page object design
+- All assertion logic and test data decisions
+- Bug identification and documentation
+- Final review and editing of all code
 
--   All exploratory testing and flow identification
--   Locator selection and page object design
--   All assertion logic and test data decisions
--   Bug identification and documentation
--   Final review and editing of all code

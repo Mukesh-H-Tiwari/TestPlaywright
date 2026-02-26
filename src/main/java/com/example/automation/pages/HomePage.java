@@ -1,6 +1,7 @@
 package com.example.automation.pages;
 
 import com.example.automation.utils.BasePage;
+import com.example.automation.utils.TestConstants;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
@@ -68,12 +69,7 @@ public class HomePage extends BasePage {
 
     public HomePage clickBookNowForRoom(String roomName) {
         Locator targetRoomCard = roomCards.filter(new Locator.FilterOptions().setHasText(roomName));
-        targetRoomCard.getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName("Book now")).click();
-        return this;
-    }
-
-    public HomePage scrollToContactForm() {
-        page.locator("input[name='name']").scrollIntoViewIfNeeded();
+        targetRoomCard.getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName(TestConstants.BOOK_NOW_BUTTON_TEXT)).click();
         return this;
     }
 
