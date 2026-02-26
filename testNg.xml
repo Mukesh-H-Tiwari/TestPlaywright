@@ -1,6 +1,6 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 
-<suite name="Playwright Automation Suite" verbose="1" parallel="tests" thread-count="2">
+<suite name="Playwright Automation Suite" verbose="1">
 
     <listeners>
         <listener class-name="com.example.automation.listeners.ExtentReportListener"/>
