@@ -48,97 +48,97 @@ public class VerifyHomePageTest {
     }
 
     //Defect1: User is able to book with past dates.
-//    @Test(description = "Verify user is able to book the room successfully",
-//            groups = {"Regression", "Booking"},
-//            testName = "TC_Book_Room_Success")
-//    public void verifyUserIsAbleToBookTheRoomSuccessfully() {
-//
-//        // ---------- Test Data ----------
-//        String expectedHeader = "Shady Meadows B&B";
-//        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyy");
-//        String checkInDate = LocalDate.now()
-//                .plusDays(1)
-//                .format(dateFormatter);
-//        String checkOutDate = LocalDate.now()
-//                .plusDays(5)
-//                .format(dateFormatter);
-//        String checkInDateForUrl = LocalDate.now().plusDays(1).toString();
-//        String checkOutDateForUrl = LocalDate.now().plusDays(5).toString();
-//        String roomToBook = "Double";
-//        String reservationPageTitle = "Double Room";
-//        List<String> expectedRooms = Arrays.asList("Single", "Double", "Suite");
-//        int pricePerNight = 150;
-//        int numberOfNights = 4;
-//        int cleaningFee = 25;
-//        int serviceFee = 15;
-//        String expectedTotalPrice = Integer.toString((pricePerNight * numberOfNights)+(cleaningFee+serviceFee));
-//        String firstName = "John";
-//        String lastName = "Doe";
-//        String email = "JohnDoe@cba.com";
-//        String phoneNumber = "56345678910";
-//        String expectedConfirmationMessage = "Booking Confirmed";
-//        String expectedCheckInAndCheckOutDates = checkInDateForUrl +" - "+ checkOutDateForUrl;
-//
-//        // ---------- Test Steps ----------
-//        homePage.navigate(urlHelper.homePageUrl);
-//
-//        // Verify Home Page header
-//        Assert.assertEquals(homePage.getHeaderText(), expectedHeader, "Header text mismatch.");
-//
-//        // Enter dates
-//        homePage.enterCheckInDate(checkInDate)
-//                .enterCheckOutDate(checkOutDate);
-//
-//        // Validate entered dates
-//        Assert.assertEquals(homePage.getCheckInDate(), checkInDate, "Check-in date mismatch.");
-//        Assert.assertEquals(homePage.getCheckOutDate(), checkOutDate, "Check-out date mismatch.");
-//
-//        // Check availability
-//        homePage.clickCheckAvailability();
-//
-//        // Validate available rooms
-//        List<String> actualRooms = homePage.getAvailableRooms();
-//        Assert.assertEquals(actualRooms, expectedRooms, "Available rooms mismatch.");
-//
-//        // Click Book Now
-//        homePage.clickBookNowForRoom(roomToBook);
-//        reservationPage.waitForReservationPageToLoad();
-//
-//        // Validate Double room is selected in the reservation page
-//        Assert.assertEquals(reservationPage.getReservationRoomTitle(), reservationPageTitle, "Reservation page title mismatch.");
-//
-//        // Validate booking selection is reflected in the UI
-//        Assert.assertTrue(reservationPage.verifySelectionIsReflected(), "Selected room is not reflected in the UI.");
-//
-//        // get current URL and validate it contains the correct query parameters
-//        String url = reservationPage.getCurrentUrl();
-//        Assert.assertTrue(url.contains(checkInDateForUrl), "URL does not contain correct check-in date.");
-//        Assert.assertTrue(url.contains(checkOutDateForUrl), "URL does not contain correct check-out date.");
-//
-//        // Verify total price is calculated correctly based on the number of nights and room price
-//        Assert.assertTrue(reservationPage.getTotalPrice().contains(expectedTotalPrice), "Total price calculation is incorrect.");
-//
-//        reservationPage.clickReserveButton()
-//                .enterFirstName(firstName)
-//                .enterLastName(lastName)
-//                .enterEmail(email)
-//                .enterPhoneNumber(phoneNumber)
-//                .clickReserveNow();
-//
-//        // Validate booking confirmation message
-//        Assert.assertEquals(reservationPage.getBookingConfirmationMessage(), expectedConfirmationMessage,
-//                "Booking confirmation message mismatch.");
-//
-//        // Validate booking Dates in the confirmation message
-//        Assert.assertEquals(reservationPage.getCheckInAndCheckOutDatesFromConfirmation(), expectedCheckInAndCheckOutDates,
-//                "Check-in and Check-out dates in confirmation message mismatch.");
-//
-//        //click on return to home
-//        reservationPage.clickReturnToHome();
-//
-//        // Verify Home Page header
-//        Assert.assertEquals(homePage.getHeaderText(), expectedHeader, "Header text mismatch.");
-//    }
+    @Test(description = "Verify user is able to book the room successfully",
+            groups = {"Regression", "Booking"},
+            testName = "TC_Book_Room_Success")
+    public void verifyUserIsAbleToBookTheRoomSuccessfully() {
+
+        // ---------- Test Data ----------
+        String expectedHeader = "Shady Meadows B&B";
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyy");
+        String checkInDate = LocalDate.now()
+                .plusDays(1)
+                .format(dateFormatter);
+        String checkOutDate = LocalDate.now()
+                .plusDays(5)
+                .format(dateFormatter);
+        String checkInDateForUrl = LocalDate.now().plusDays(1).toString();
+        String checkOutDateForUrl = LocalDate.now().plusDays(5).toString();
+        String roomToBook = "Double";
+        String reservationPageTitle = "Double Room";
+        List<String> expectedRooms = Arrays.asList("Single", "Double", "Suite");
+        int pricePerNight = 150;
+        int numberOfNights = 4;
+        int cleaningFee = 25;
+        int serviceFee = 15;
+        String expectedTotalPrice = Integer.toString((pricePerNight * numberOfNights)+(cleaningFee+serviceFee));
+        String firstName = "John";
+        String lastName = "Doe";
+        String email = "JohnDoe@cba.com";
+        String phoneNumber = "56345678910";
+        String expectedConfirmationMessage = "Booking Confirmed";
+        String expectedCheckInAndCheckOutDates = checkInDateForUrl +" - "+ checkOutDateForUrl;
+
+        // ---------- Test Steps ----------
+        homePage.navigate(urlHelper.homePageUrl);
+
+        // Verify Home Page header
+        Assert.assertEquals(homePage.getHeaderText(), expectedHeader, "Header text mismatch.");
+
+        // Enter dates
+        homePage.enterCheckInDate(checkInDate)
+                .enterCheckOutDate(checkOutDate);
+
+        // Validate entered dates
+        Assert.assertEquals(homePage.getCheckInDate(), checkInDate, "Check-in date mismatch.");
+        Assert.assertEquals(homePage.getCheckOutDate(), checkOutDate, "Check-out date mismatch.");
+
+        // Check availability
+        homePage.clickCheckAvailability();
+
+        // Validate available rooms
+        List<String> actualRooms = homePage.getAvailableRooms();
+        Assert.assertEquals(actualRooms, expectedRooms, "Available rooms mismatch.");
+
+        // Click Book Now
+        homePage.clickBookNowForRoom(roomToBook);
+        reservationPage.waitForReservationPageToLoad();
+
+        // Validate Double room is selected in the reservation page
+        Assert.assertEquals(reservationPage.getReservationRoomTitle(), reservationPageTitle, "Reservation page title mismatch.");
+
+        // Validate booking selection is reflected in the UI
+        Assert.assertTrue(reservationPage.verifySelectionIsReflected(), "Selected room is not reflected in the UI.");
+
+        // get current URL and validate it contains the correct query parameters
+        String url = reservationPage.getCurrentUrl();
+        Assert.assertTrue(url.contains(checkInDateForUrl), "URL does not contain correct check-in date.");
+        Assert.assertTrue(url.contains(checkOutDateForUrl), "URL does not contain correct check-out date.");
+
+        // Verify total price is calculated correctly based on the number of nights and room price
+        Assert.assertTrue(reservationPage.getTotalPrice().contains(expectedTotalPrice), "Total price calculation is incorrect.");
+
+        reservationPage.clickReserveButton()
+                .enterFirstName(firstName)
+                .enterLastName(lastName)
+                .enterEmail(email)
+                .enterPhoneNumber(phoneNumber)
+                .clickReserveNow();
+
+        // Validate booking confirmation message
+        Assert.assertEquals(reservationPage.getBookingConfirmationMessage(), expectedConfirmationMessage,
+                "Booking confirmation message mismatch.");
+
+        // Validate booking Dates in the confirmation message
+        Assert.assertEquals(reservationPage.getCheckInAndCheckOutDatesFromConfirmation(), expectedCheckInAndCheckOutDates,
+                "Check-in and Check-out dates in confirmation message mismatch.");
+
+        //click on return to home
+        reservationPage.clickReturnToHome();
+
+        // Verify Home Page header
+        Assert.assertEquals(homePage.getHeaderText(), expectedHeader, "Header text mismatch.");
+    }
 
     // Defect1: The Alert messages are not in correct order and randomly displayed on the UI
     // Defect2: The Alert messages are not correct for the respective empty fields and validation rules. For ex: For Must not be empty, the alert message should be "Phone number must not be empty" instead of just "must not be empty"
