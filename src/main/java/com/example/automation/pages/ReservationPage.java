@@ -1,12 +1,15 @@
 package com.example.automation.pages;
 
 import com.example.automation.utils.BasePage;
+import com.example.automation.utils.DateUtils;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.WaitForSelectorState;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Locale;
 
 public class ReservationPage extends BasePage {
 
@@ -25,6 +28,12 @@ public class ReservationPage extends BasePage {
     private final Locator cssTagAReturnToHome;
     private final Locator cssTagAlertMessages;
 
+    // ---------- Calendar locators ----------
+    private final Locator calendarNextButton;
+    private final Locator calendarBackButton;
+    private final Locator calendarMonthLabel;
+    private final Locator calendarDateCells;
+
 
     public ReservationPage(Page page) {
         super(page);
@@ -40,8 +49,12 @@ public class ReservationPage extends BasePage {
         this.cssTagButtonReserveNow = page.locator("button:text-is('Reserve Now')");
         this.cssTagH2BookingConfirmation = page.locator("h2.card-title.mb-3");
         this.cssTagPCheckInAndCheckOutDates = page.locator("p.pt-2");
-        this.cssTagAReturnToHome = page.locator("A:text-is('Return Home')");
         this.cssTagAlertMessages = page.locator("div.alert li");
+        this.calendarNextButton  = page.locator(".rbc-toolbar button:last-child");
+        this.calendarBackButton  = page.locator(".rbc-toolbar .rbc-btn-group:first-child button:first-child");
+        this.calendarMonthLabel  = page.locator(".rbc-toolbar-label");
+        this.calendarDateCells   = page.locator(".rbc-date-cell");
+        this.cssTagAReturnToHome   = page.locator("a.btn:text-is('Return home')");
     }
 
     public ReservationPage waitForReservationPageToLoad() {
@@ -50,7 +63,7 @@ public class ReservationPage extends BasePage {
     }
 
     public boolean verifySelectionIsReflected() {
-        return cssTagDivSelectedDate.isVisible();
+        return cssTagDivSelectedDate.first().isVisible();
     }
 
     public String getReservationRoomTitle() {
@@ -93,6 +106,7 @@ public class ReservationPage extends BasePage {
     }
 
     public String getBookingConfirmationMessage() {
+        cssTagAReturnToHome.waitFor();
         return cssTagH2BookingConfirmation.textContent().trim();
     }
 
@@ -114,5 +128,87 @@ public class ReservationPage extends BasePage {
         cssTagAlertMessages.first().waitFor(new Locator.WaitForOptions()
                 .setState(WaitForSelectorState.VISIBLE));
         return this;
+    }
+
+    /**
+     * Reads the currently displayed month from rbc-toolbar-label,
+     * then clicks Next or Back until it matches the target date's month/year.
+     *
+     * e.g. if label shows "February 2026" and target is June 2026 → clicks Next 4 times
+     *      if label shows "February 2026" and target is November 2025 → clicks Back 3 times
+     */
+    public ReservationPage navigateCalendarToMonth(LocalDate targetDate) {
+        DateTimeFormatter labelFmt = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH);
+        String targetLabel = targetDate.format(labelFmt);
+
+        calendarMonthLabel.waitFor();
+
+        for (int i = 0; i < 30; i++) {
+            String currentLabel = calendarMonthLabel.innerText().trim();
+            System.out.println("[Calendar] showing=" + currentLabel + "  need=" + targetLabel);
+
+            if (currentLabel.equals(targetLabel)) break;
+
+            // Parse the month currently visible on screen
+            LocalDate currentMonth = LocalDate.parse(
+                    "01 " + currentLabel,
+                    DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.ENGLISH));
+
+            // If target is after the last day of current month → go Next, else go Back
+            if (targetDate.isAfter(currentMonth.withDayOfMonth(currentMonth.lengthOfMonth()))) {
+                calendarNextButton.click();
+            } else {
+                calendarBackButton.click();
+            }
+
+            // Wait for the label to update before reading it again
+            page.waitForFunction(
+                    "prev => document.querySelector('.rbc-toolbar-label').innerText.trim() !== prev",
+                    currentLabel);
+        }
+        return this;
+    }
+
+    /**
+     * Returns true if the given day on the currently displayed calendar month
+     * has no booked events (i.e. the day is available).
+     */
+    public boolean isDayAvailable(LocalDate date) {
+        String dayText = String.valueOf(date.getDayOfMonth());
+        Locator dayCell = calendarDateCells
+                .filter(new Locator.FilterOptions().setHasText(dayText)).first();
+        String cellClass = dayCell.getAttribute("class");
+        boolean isOffRange   = cellClass != null && cellClass.contains("rbc-off-range");
+        long    bookedEvents = dayCell.locator(".rbc-event")
+                .filter(new Locator.FilterOptions().setHasNotText("Selected"))
+                .count();
+        return !isOffRange && bookedEvents == 0;
+    }
+
+    /**
+     * Clicks a specific day cell on the currently displayed calendar month.
+     */
+    public ReservationPage selectCalendarDate(LocalDate date) {
+        String dayText = String.valueOf(date.getDayOfMonth());
+        calendarDateCells
+                .filter(new Locator.FilterOptions().setHasText(dayText))
+                .first().click();
+        return this;
+    }
+
+    /**
+     * Iterates the shuffled list of future dates from DateUtils.
+     * For each candidate, reads rbc-toolbar-label, clicks Next or Back to reach
+     * that month, then checks isDayAvailable(). Returns the first available date.
+     * Throws if no available date is found across the entire list.
+     */
+    public LocalDate findFirstAvailableDate() {
+        for (LocalDate candidate : DateUtils.getShuffledFutureDates()) {
+            navigateCalendarToMonth(candidate);
+            if (isDayAvailable(candidate)) {
+                return candidate;
+            }
+        }
+        throw new RuntimeException("No available date found across all predefined future dates.");
     }
 }

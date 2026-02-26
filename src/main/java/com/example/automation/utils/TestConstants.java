@@ -8,9 +8,6 @@ public class TestConstants {
 
     private TestConstants() { /* utility class — no instances */ }
 
-    // ---------- URLs ----------
-    public static final String HOME_PAGE_URL = "https://automationintesting.online/";
-
     // ---------- Room pricing ----------
     public static final int SINGLE_ROOM_PRICE_PER_NIGHT = 100;
     public static final int DOUBLE_ROOM_PRICE_PER_NIGHT = 150;

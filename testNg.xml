@@ -6,9 +6,13 @@
 
     <test name="Regression Tests">
         <classes>
-            <class name="com.example.automation.tests.Home.VerifyHomePageTest"/>
+            <class name="com.example.automation.tests.Home.VerifyHomePageTest">
+                <methods>
+                    <include name="verifyUserIsAbleToBookTheRoomSuccessfully"/>
+                    <include name="VerifyFormValidationForBooking"/>
+                </methods>
+            </class>
         </classes>
-
     </test>
 
 </suite>

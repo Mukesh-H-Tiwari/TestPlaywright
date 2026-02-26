@@ -61,6 +61,15 @@ Application Under Test: https://automationintesting.online/
 
 ---
 
+## Not Automated (Out of Scope for This Assignment)
+
+| TC   | Description                              | Reason                                                                                     |
+|------|------------------------------------------|--------------------------------------------------------------------------------------------|
+| TC03 | Invalid email format validation          | App does not validate email format client-side; no distinct error message                  |
+| TC04 | Homepage smoke – page loads and rooms visible | Covered as precondition steps in TC01                                                      |
+
+---
+
 ## Notes
 
 - Automation uses Playwright Java with TestNG

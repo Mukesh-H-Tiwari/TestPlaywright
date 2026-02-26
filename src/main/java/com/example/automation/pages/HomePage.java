@@ -7,7 +7,6 @@ import com.microsoft.playwright.options.AriaRole;
 
 import java.util.List;
 import static com.microsoft.playwright.options.AriaRole.BUTTON;
-import static com.microsoft.playwright.options.AriaRole.LINK;
 
 public class HomePage extends BasePage {
 
@@ -73,6 +72,13 @@ public class HomePage extends BasePage {
         return this;
     }
 
+    public HomePage scrollToContactForm() {
+        page.locator("input[name='name']").scrollIntoViewIfNeeded();
+        return this;
+    }
 
+    public boolean isPageLoaded() {
+        return header.isVisible();
+    }
 
 }

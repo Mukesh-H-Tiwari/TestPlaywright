@@ -31,29 +31,11 @@ I explored the app manually first and picked the flows that matter most from a r
 
 ### Bugs documented in test comments
 
-Bug
-
-Test
-
-Description
-
-Past date booking
-
-`TC_Book_Room_Success`
-
-App accepts past check-in dates — no frontend guard
-
-Random alert order
-
-`TC_Book_Room_Form_Validation`
-
-Alert messages appear in non-deterministic order
-
-Generic alert text
-
-`TC_Book_Room_Form_Validation`
-
-`"must not be empty"` doesn't say which field it refers to
+| Bug | Test | Description |
+|---|---|---|
+| Past date booking | `TC_Book_Room_Success` | App accepts past check-in dates — no frontend guard |
+| Random alert order | `TC_Book_Room_Form_Validation` | Alert messages appear in non-deterministic order |
+| Generic alert text | `TC_Book_Room_Form_Validation` | `"must not be empty"` doesn't say which field it refers to |
 
 ---
 
@@ -85,7 +67,7 @@ Page Object Model throughout. Every page method returns `this` so steps chain na
 
 -   **Java 8** — tested with Amazon Corretto 1.8.0_472
 -   **Maven 3.6+**
--   **Google Chrome** installed at the default path: `C:Program FilesGoogleChromeApplicationchrome.exe`
+-   **Google Chrome** installed at the default path: `C:\Program Files\Google\Chrome\Application\chrome.exe`
 
 Playwright downloads its own browser driver on first run — nothing else to install.
 
@@ -161,37 +143,15 @@ Detailed test case steps and expected results are documented in [`TEST_CASES.md`
 
 ## Time spent
 
-Activity
-
-Time
-
-Exploratory testing of the app
-
-~30 min
-
-Framework setup, pom, folder structure
-
-~20 min
-
-Writing page objects (HomePage, ReservationPage)
-
-~45 min
-
-Writing test cases
-
-~60 min
-
-Debugging browser lifecycle / teardown issues
-
-~40 min
-
-README
-
-~15 min
-
-**Total**
-
-**~3h 30min**
+| Activity | Time |
+|---|---|
+| Exploratory testing of the app | ~30 min |
+| Framework setup, pom, folder structure | ~20 min |
+| Writing page objects (HomePage, ReservationPage) | ~45 min |
+| Writing test cases | ~60 min |
+| Debugging browser lifecycle / teardown issues | ~40 min |
+| README | ~15 min |
+| **Total** | **~3h 30min** |
 
 ---
 
