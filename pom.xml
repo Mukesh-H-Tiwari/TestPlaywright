@@ -30,7 +30,7 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>6.14.3</version>
+            <version>7.9.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -54,7 +54,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20210307</version>
+            <version>20231013</version>
         </dependency>
 
     </dependencies>
@@ -82,36 +82,7 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
-                    <environmentVariables>
-                        <PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD>true</PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD>
-                    </environmentVariables>
                 </configuration>
-            </plugin>
-
-            <!-- Exec Maven Plugin to install only Chromium -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <id>install-chromium</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-classpath</argument>
-                                <classpath/>
-                                <argument>com.microsoft.playwright.CLI</argument>
-                                <argument>install</argument>
-                                <argument>chromium</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
         </plugins>

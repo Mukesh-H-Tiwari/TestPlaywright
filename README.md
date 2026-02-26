@@ -2,31 +2,58 @@
 
 Automation suite for [https://automationintesting.online/](https://automationintesting.online/) using Playwright (Java) + TestNG.
 
+**GitHub Repository:** [https://github.com/YOUR_USERNAME/TestPlaywright](https://github.com/YOUR_USERNAME/TestPlaywright) ← replace with your repo link
+
 ---
 
 ## What's covered
 
-I explored the app manually first and picked the flows that matter most from a user's perspective:
+I explored the app manually first and picked the flows that matter most from a real user's perspective.
 
-**TC_Book_Room_Success** — the full booking journey
-- Opens the home page, verifies the header
-- Enters check-in / check-out dates and confirms what was entered is reflected back
-- Checks available rooms match expectations
-- Books a Double room, lands on the reservation page
-- Confirms the room title, date selection UI, and URL query parameters
-- Validates the total price against `£150/night × 4 nights`
-- Fills in guest details and submits
-- Asserts the confirmation message and the dates shown on the confirmation card
-- Clicks "Return Home" and confirms we're back on the home page
+### TC_Book_Room_Success — end-to-end booking journey
 
-**TC_Book_Room_Form_Validation** — form validation, field by field
-- Submits the reservation form completely empty and checks all alert messages are present
-- Then fills fields one at a time (first name → last name → email → phone) and re-submits after each step to confirm the right alerts disappear progressively
-- Also checks the phone number length boundary (too long)
+-   Lands on the home page, verifies the header
+-   Enters check-in / check-out dates and confirms the inputs reflect what was typed
+-   Checks the list of available rooms matches expectations
+-   Books a Double room and lands on the reservation page
+-   Confirms the room title, date selection UI, and URL query parameters
+-   Validates the total price (`£150/night × 4 nights + fees`) against the UI
+-   Fills in guest details and submits
+-   Asserts the confirmation message and the dates on the confirmation card
+-   Clicks "Return Home" and confirms we're back on the home page
 
-### Bugs spotted (documented in test comments)
-- `verifyUserIsAbleToBookTheRoomSuccessfully` — the app accepts past dates for booking (no frontend guard)
-- `VerifyFormValidationForBooking` — alert messages appear in a random order on the UI, and the messages themselves are too generic (e.g. `"must not be empty"` instead of `"Email must not be empty"`)
+### TC_Book_Room_Form_Validation — progressive field validation (negative)
+
+-   Submits the reservation form completely empty, checks all alert messages are present
+-   Fills fields one at a time (first name → last name → email → phone), re-submits after each step
+-   Confirms the right alerts disappear as each field is filled
+-   Checks phone number length boundary (too long)
+
+### Bugs documented in test comments
+
+Bug
+
+Test
+
+Description
+
+Past date booking
+
+`TC_Book_Room_Success`
+
+App accepts past check-in dates — no frontend guard
+
+Random alert order
+
+`TC_Book_Room_Form_Validation`
+
+Alert messages appear in non-deterministic order
+
+Generic alert text
+
+`TC_Book_Room_Form_Validation`
+
+`"must not be empty"` doesn't say which field it refers to
 
 ---
 
@@ -36,29 +63,31 @@ I explored the app manually first and picked the flows that matter most from a u
 src/
   main/java/com/example/automation/
     pages/
-      HomePage.java          ← locators + actions for the home/search page
-      ReservationPage.java   ← locators + actions for the booking/confirmation page
+      HomePage.java          ← search, date entry, room listing
+      ReservationPage.java   ← booking form, confirmation card, alert messages
     utils/
-      BasePage.java          ← shared page base (holds Page reference, common helpers)
+      BasePage.java          ← shared base (holds Page reference, getCurrentUrl)
       urlHelper.java         ← base URL constant
+
   test/java/com/example/automation/
     tests/Home/
-      VerifyHomePageTest.java ← both test cases live here
-testNg.xml                    ← suite config, points to the test class
+      VerifyHomePageTest.java  ← both test cases + setup/teardown + screenshot on failure
+
+testNg.xml    ← suite config
 pom.xml
 ```
 
-Page Object Model is used throughout. Every page method returns `this` so steps can be chained where it reads naturally.
+Page Object Model throughout. Every page method returns `this` so steps chain naturally.
 
 ---
 
 ## Prerequisites
 
-- **Java 8** (project is compiled against 1.8 — tested with Amazon Corretto 1.8.0_472)
-- **Maven 3.6+**
-- **Google Chrome** installed at the default path (`C:\Program Files\Google\Chrome\Application\chrome.exe` on Windows)
+-   **Java 8** — tested with Amazon Corretto 1.8.0_472
+-   **Maven 3.6+**
+-   **Google Chrome** installed at the default path: `C:Program FilesGoogleChromeApplicationchrome.exe`
 
-Playwright downloads its own browser driver on the first run — you don't need to install anything extra for that.
+Playwright downloads its own browser driver on first run — nothing else to install.
 
 ---
 
@@ -66,66 +95,120 @@ Playwright downloads its own browser driver on the first run — you don't need 
 
 **From IntelliJ:**
 
-Right-click `testNg.xml` → Run, or right-click any test method and hit Run.
+Right-click `testNg.xml` → Run. Or right-click any test method directly.
 
-**From the terminal (if Maven is on PATH):**
+**Full suite from terminal:**
 
 ```bash
 mvn clean test
 ```
 
-The Surefire plugin picks up `testNg.xml` automatically, so no extra flags are needed.
-
-**Run a single test:**
+**Single test method:**
 
 ```bash
 mvn test -Dtest=VerifyHomePageTest#verifyUserIsAbleToBookTheRoomSuccessfully
+mvn test -Dtest=VerifyHomePageTest#VerifyFormValidationForBooking
 ```
 
-The browser launches in **headed mode** (you'll see Chrome open). It uses the real Chrome binary via `setChannel("chrome")`, not the bundled Chromium, so the experience looks exactly like a normal browser session.
+The browser runs in **headed mode** — Chrome opens visibly, maximized, using the real Chrome binary (`setChannel("chrome")`).
+
+---
+
+## Test execution report / screenshots
+
+On test failure, a full-page screenshot is automatically captured and saved to:
+
+```
+target/screenshots/<yyyyMMdd_HHmmss>_<testName>.png
+```
+
+Example:
+
+```
+target/screenshots/20260226_143022_verifyUserIsAbleToBookTheRoomSuccessfully.png
+```
+
+The `target/screenshots/` folder is created automatically if it doesn't exist. Screenshots are timestamped so multiple failures in the same run don't overwrite each other.
 
 ---
 
 ## Key decisions
 
-**Why Playwright over Selenium?**
-Playwright's auto-waiting is much more reliable for a React/SPA app like this one. No manual `Thread.sleep` or `FluentWait` gymnastics needed.
+**Full Playwright stack created per test (`@BeforeMethod`)** `Playwright → Browser → BrowserContext → Page` is created fresh for every test and disposed in `@AfterMethod`. Sharing a browser or context across tests caused cross-thread object errors (`TargetClosedError`, `Cannot find object to call __adopt__`).
 
-**`DOMCONTENTLOADED` instead of `LOAD`**
-Navigation waits for `domcontentloaded` rather than the default `load` event. The app fires a number of background XHR calls after load, and waiting for full `load` was causing `ERR_ABORTED` race conditions when the browser context closed mid-flight.
+**`playwright.close()` only in teardown — never `browser.close()` separately** Calling `browser.close()` before `playwright.close()` double-closes the browser and crashes the IPC pipe for the next test. `playwright.close()` disposes everything it owns in the right order.
 
-**`@BeforeMethod` / `@AfterMethod` for full stack setup**
-Each test creates its own `Playwright → Browser → BrowserContext → Page` and tears it all down via `playwright.close()` at the end. This avoids the cross-thread object adoption errors that happen when browser instances are shared across TestNG methods.
+**`DOMCONTENTLOADED` instead of `LOAD` on navigation** The app fires background XHR calls after `load`. Waiting for full `load` caused `net::ERR_ABORTED` race conditions when the context closed mid-flight. `domcontentloaded` + an explicit `waitFor()` on the header is more stable.
 
-**`playwright.close()` only in teardown — never `browser.close()` separately**
-Calling `browser.close()` before `playwright.close()` causes a double-close crash because `playwright.close()` already disposes everything it owns.
+**Screenshot on failure wired into `@AfterMethod`** `ITestResult.getStatus()` is checked in `tearDown(ITestResult result)`. If the test failed, a full-page screenshot is taken before `playwright.close()` is called, so the page is still alive when the screenshot runs.
 
-**Fluent / builder-style page methods**
-Methods like `enterCheckInDate()`, `enterCheckOutDate()` return `this` so tests read as a sequence of steps rather than a wall of individual statements.
+**Fluent page methods** Page methods return `this` so test steps read as a sequence:
+
+```java
+reservationPage.clickReserveButton()
+               .enterFirstName("John")
+               .enterLastName("Doe")
+               .clickReserveNow();
+```
+
+---
+
+## Test cases
+
+Detailed test case steps and expected results are documented in [`TEST_CASES.md`](TEST_CASES.md).
 
 ---
 
 ## Time spent
 
-| Activity | Time |
-|---|---|
-| Exploratory testing of the app | ~30 min |
-| Framework setup, pom, folder structure | ~20 min |
-| Writing page objects (HomePage, ReservationPage) | ~45 min |
-| Writing and debugging test cases | ~60 min |
-| Fixing browser launch / teardown issues | ~40 min |
-| README | ~15 min |
-| **Total** | **~3.5 hours** |
+Activity
+
+Time
+
+Exploratory testing of the app
+
+~30 min
+
+Framework setup, pom, folder structure
+
+~20 min
+
+Writing page objects (HomePage, ReservationPage)
+
+~45 min
+
+Writing test cases
+
+~60 min
+
+Debugging browser lifecycle / teardown issues
+
+~40 min
+
+README
+
+~15 min
+
+**Total**
+
+**~3h 30min**
 
 ---
 
 ## AI assistance
 
-GitHub Copilot (via JetBrains plugin) was used during development. Specifically:
+GitHub Copilot (via JetBrains plugin) was used during development.
 
-- Helped diagnose and fix a series of Playwright-specific teardown errors (`TargetClosedError`, `ERR_ABORTED`, `Cannot find object to call __adopt__`) — the root causes were understood and verified manually before applying fixes
-- Suggested the `DOMCONTENTLOADED` navigation strategy after the `ERR_ABORTED` errors were explained
-- Assisted with writing this README
+**Where it helped:**
 
-All test logic, locator choices, assertion strategy, and bug identification were done manually by exploring the application.
+-   Diagnosed and suggested fixes for Playwright-specific teardown errors (`TargetClosedError`, `ERR_ABORTED`, `Cannot find object to call __adopt__`). Root causes were understood and verified manually before applying fixes.
+-   Suggested `DOMCONTENTLOADED` as the navigation wait strategy after the `ERR_ABORTED` pattern was explained.
+-   Wrote the first draft of this README.
 
+**What was done without AI:**
+
+-   All exploratory testing and flow identification
+-   Locator selection and page object design
+-   All assertion logic and test data decisions
+-   Bug identification and documentation
+-   Final review and editing of all code

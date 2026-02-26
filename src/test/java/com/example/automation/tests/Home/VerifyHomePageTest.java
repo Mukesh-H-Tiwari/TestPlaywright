@@ -2,47 +2,23 @@ package com.example.automation.tests.Home;
 
 import com.example.automation.pages.HomePage;
 import com.example.automation.pages.ReservationPage;
+import com.example.automation.tests.BaseTest;
+import com.example.automation.utils.TestConstants;
 import com.example.automation.utils.urlHelper;
-import com.microsoft.playwright.*;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.List;
 
-public class VerifyHomePageTest {
+public class VerifyHomePageTest extends BaseTest {
 
-    private Playwright playwright;
-    private Browser browser;
-    private BrowserContext context;
-    private Page page;
     private HomePage homePage;
     private ReservationPage reservationPage;
 
-    @BeforeMethod
-    public void setUp() {
-        playwright = Playwright.create();
-
-        // Launch real Chrome (not Chromium) in maximized, non-incognito mode
-        browser = playwright.chromium().launch(
-                new BrowserType.LaunchOptions()
-                        .setHeadless(false)
-                        .setChannel("chrome")
-                        .setArgs(Arrays.asList(
-                                "--start-maximized",
-                                "--disable-gpu",
-                                "--no-sandbox",
-                                "--disable-dev-shm-usage"
-                        )));
-
-        // Create a fresh context and page for each test
-        context = browser.newContext(
-                new Browser.NewContextOptions()
-                        .setViewportSize(null));
-
-        page = context.newPage();
+    @BeforeMethod(alwaysRun = true, dependsOnMethods = "setUp")
+    public void setUpPages() {
         homePage = new HomePage(page);
         reservationPage = new ReservationPage(page);
     }
@@ -53,181 +29,118 @@ public class VerifyHomePageTest {
             testName = "TC_Book_Room_Success")
     public void verifyUserIsAbleToBookTheRoomSuccessfully() {
 
-        // ---------- Test Data ----------
-        String expectedHeader = "Shady Meadows B&B";
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyy");
-        String checkInDate = LocalDate.now()
-                .plusDays(1)
-                .format(dateFormatter);
-        String checkOutDate = LocalDate.now()
-                .plusDays(5)
-                .format(dateFormatter);
-        String checkInDateForUrl = LocalDate.now().plusDays(1).toString();
-        String checkOutDateForUrl = LocalDate.now().plusDays(5).toString();
-        String roomToBook = "Double";
-        String reservationPageTitle = "Double Room";
-        List<String> expectedRooms = Arrays.asList("Single", "Double", "Suite");
-        int pricePerNight = 150;
-        int numberOfNights = 4;
-        int cleaningFee = 25;
-        int serviceFee = 15;
-        String expectedTotalPrice = Integer.toString((pricePerNight * numberOfNights)+(cleaningFee+serviceFee));
-        String firstName = "John";
-        String lastName = "Doe";
-        String email = "JohnDoe@cba.com";
-        String phoneNumber = "56345678910";
-        String expectedConfirmationMessage = "Booking Confirmed";
-        String expectedCheckInAndCheckOutDates = checkInDateForUrl +" - "+ checkOutDateForUrl;
-
         // ---------- Test Steps ----------
         homePage.navigate(urlHelper.homePageUrl);
 
-        // Verify Home Page header
-        Assert.assertEquals(homePage.getHeaderText(), expectedHeader, "Header text mismatch.");
+        Assert.assertEquals(homePage.getHeaderText(), TestConstants.HOME_PAGE_HEADER, "Header text mismatch.");
 
-        // Enter dates
-        homePage.enterCheckInDate(checkInDate)
-                .enterCheckOutDate(checkOutDate);
+        homePage.enterCheckInDate(LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern(TestConstants.DATE_FORMAT)))
+                .enterCheckOutDate(LocalDate.now().plusDays(5).format(DateTimeFormatter.ofPattern(TestConstants.DATE_FORMAT)));
 
-        // Validate entered dates
-        Assert.assertEquals(homePage.getCheckInDate(), checkInDate, "Check-in date mismatch.");
-        Assert.assertEquals(homePage.getCheckOutDate(), checkOutDate, "Check-out date mismatch.");
+        Assert.assertEquals(homePage.getCheckInDate(),
+                LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern(TestConstants.DATE_FORMAT)), "Check-in date mismatch.");
+        Assert.assertEquals(homePage.getCheckOutDate(),
+                LocalDate.now().plusDays(5).format(DateTimeFormatter.ofPattern(TestConstants.DATE_FORMAT)), "Check-out date mismatch.");
 
-        // Check availability
         homePage.clickCheckAvailability();
 
-        // Validate available rooms
-        List<String> actualRooms = homePage.getAvailableRooms();
-        Assert.assertEquals(actualRooms, expectedRooms, "Available rooms mismatch.");
+        Assert.assertEquals(homePage.getAvailableRooms(),
+                Arrays.asList(TestConstants.ROOM_SINGLE, TestConstants.ROOM_DOUBLE, TestConstants.ROOM_SUITE), "Available rooms mismatch.");
 
-        // Click Book Now
-        homePage.clickBookNowForRoom(roomToBook);
+        homePage.clickBookNowForRoom(TestConstants.ROOM_DOUBLE);
         reservationPage.waitForReservationPageToLoad();
 
-        // Validate Double room is selected in the reservation page
-        Assert.assertEquals(reservationPage.getReservationRoomTitle(), reservationPageTitle, "Reservation page title mismatch.");
+        Assert.assertEquals(reservationPage.getReservationRoomTitle(),
+                TestConstants.DOUBLE_ROOM_TITLE, "Reservation page title mismatch.");
+        Assert.assertTrue(reservationPage.verifySelectionIsReflected(),
+                "Selected room is not reflected in the UI.");
 
-        // Validate booking selection is reflected in the UI
-        Assert.assertTrue(reservationPage.verifySelectionIsReflected(), "Selected room is not reflected in the UI.");
+        Assert.assertTrue(reservationPage.getCurrentUrl().contains(LocalDate.now().plusDays(1).toString()),
+                "URL does not contain correct check-in date.");
+        Assert.assertTrue(reservationPage.getCurrentUrl().contains(LocalDate.now().plusDays(5).toString()),
+                "URL does not contain correct check-out date.");
 
-        // get current URL and validate it contains the correct query parameters
-        String url = reservationPage.getCurrentUrl();
-        Assert.assertTrue(url.contains(checkInDateForUrl), "URL does not contain correct check-in date.");
-        Assert.assertTrue(url.contains(checkOutDateForUrl), "URL does not contain correct check-out date.");
-
-        // Verify total price is calculated correctly based on the number of nights and room price
-        Assert.assertTrue(reservationPage.getTotalPrice().contains(expectedTotalPrice), "Total price calculation is incorrect.");
+        Assert.assertTrue(reservationPage.getTotalPrice().contains(
+                Integer.toString((TestConstants.DOUBLE_ROOM_PRICE_PER_NIGHT * 4) + TestConstants.CLEANING_FEE + TestConstants.SERVICE_FEE)),
+                "Total price calculation is incorrect.");
 
         reservationPage.clickReserveButton()
-                .enterFirstName(firstName)
-                .enterLastName(lastName)
-                .enterEmail(email)
-                .enterPhoneNumber(phoneNumber)
+                .enterFirstName(TestConstants.GUEST_FIRST_NAME)
+                .enterLastName(TestConstants.GUEST_LAST_NAME)
+                .enterEmail(TestConstants.GUEST_EMAIL)
+                .enterPhoneNumber(TestConstants.GUEST_PHONE)
                 .clickReserveNow();
 
-        // Validate booking confirmation message
-        Assert.assertEquals(reservationPage.getBookingConfirmationMessage(), expectedConfirmationMessage,
-                "Booking confirmation message mismatch.");
-
-        // Validate booking Dates in the confirmation message
-        Assert.assertEquals(reservationPage.getCheckInAndCheckOutDatesFromConfirmation(), expectedCheckInAndCheckOutDates,
+        Assert.assertEquals(reservationPage.getBookingConfirmationMessage(),
+                TestConstants.BOOKING_CONFIRMED_MESSAGE, "Booking confirmation message mismatch.");
+        Assert.assertEquals(reservationPage.getCheckInAndCheckOutDatesFromConfirmation(),
+                LocalDate.now().plusDays(1) + " - " + LocalDate.now().plusDays(5),
                 "Check-in and Check-out dates in confirmation message mismatch.");
 
-        //click on return to home
         reservationPage.clickReturnToHome();
 
-        // Verify Home Page header
-        Assert.assertEquals(homePage.getHeaderText(), expectedHeader, "Header text mismatch.");
+        Assert.assertEquals(homePage.getHeaderText(), TestConstants.HOME_PAGE_HEADER, "Header text mismatch.");
     }
 
     // Defect1: The Alert messages are not in correct order and randomly displayed on the UI
-    // Defect2: The Alert messages are not correct for the respective empty fields and validation rules. For ex: For Must not be empty, the alert message should be "Phone number must not be empty" instead of just "must not be empty"
+    // Defect2: The Alert messages are not correct for the respective empty fields and validation rules.
+    //          e.g. "must not be empty" should say "Phone number must not be empty"
     @Test(description = "Verify form validation for booking a room",
             groups = {"Regression", "Booking"},
             testName = "TC_Book_Room_Form_Validation")
     public void VerifyFormValidationForBooking() {
-        // ---------- Test Data ----------
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyy");
-        String checkInDate = LocalDate.now()
-                .plusDays(1)
-                .format(dateFormatter);
-        String checkOutDate = LocalDate.now()
-                .plusDays(5)
-                .format(dateFormatter);
-        String roomToBook = "Single";
-        String firstName = "John";
-        String lastName = "Doe";
-        String email = "JohnDoe@cba.com";
-        String invalidEmail = "JohnDoe";
-        String phoneNumber = "56345678910";
-        String invalidNumber = "56345678910102910291029102910";
 
         // ---------- Test Steps ----------
         homePage.navigate(urlHelper.homePageUrl);
 
-        // Enter dates
-        homePage.enterCheckInDate(checkInDate)
-                .enterCheckOutDate(checkOutDate);
+        homePage.enterCheckInDate(LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern(TestConstants.DATE_FORMAT)))
+                .enterCheckOutDate(LocalDate.now().plusDays(5).format(DateTimeFormatter.ofPattern(TestConstants.DATE_FORMAT)));
 
-        // Check availability
         homePage.clickCheckAvailability();
 
-        // Click Book Now
-        homePage.clickBookNowForRoom(roomToBook);
+        homePage.clickBookNowForRoom(TestConstants.ROOM_SINGLE);
         reservationPage.waitForReservationPageToLoad();
 
-        // Make all the fields empty and try to reserve
+        // All fields empty
         reservationPage.clickReserveButton().clickReserveNow();
-        Assert.assertTrue(reservationPage.getAllAlertMessages().containsAll(Arrays.asList("Firstname should not be blank",
-                        "size must be between 11 and 21",
-                        "Lastname should not be blank",
-                        "size must be between 3 and 18",
-                        "must not be empty",
-                        "size must be between 3 and 30",
-                        "must not be empty")), "Alert messages mismatch for empty fields.");
-
-        reservationPage.enterFirstName(firstName)
-                .clickReserveNow();
         Assert.assertTrue(reservationPage.getAllAlertMessages().containsAll(Arrays.asList(
-                "size must be between 11 and 21",
-                "Lastname should not be blank",
-                "size must be between 3 and 18",
-                "must not be empty",
-                "size must be between 3 and 30",
-                "must not be empty")), "Alert messages mismatch for empty fields.");
+                TestConstants.ALERT_FIRSTNAME_BLANK,
+                TestConstants.ALERT_PHONE_SIZE,
+                TestConstants.ALERT_LASTNAME_BLANK,
+                TestConstants.ALERT_LASTNAME_SIZE,
+                TestConstants.ALERT_EMAIL_BLANK,
+                TestConstants.ALERT_SUBJECT_SIZE,
+                TestConstants.ALERT_PHONE_BLANK)), "Alert messages mismatch for empty fields.");
 
-        reservationPage.enterLastName(lastName)
-                .clickReserveNow();
+        // Enter first name only
+        reservationPage.enterFirstName(TestConstants.GUEST_FIRST_NAME).clickReserveNow();
         Assert.assertTrue(reservationPage.getAllAlertMessages().containsAll(Arrays.asList(
-                "size must be between 11 and 21",
-                "size must be between 3 and 18",
-                "must not be empty",
-                "size must be between 3 and 30",
-                "must not be empty")), "Alert messages mismatch for empty fields.");
+                TestConstants.ALERT_PHONE_SIZE,
+                TestConstants.ALERT_LASTNAME_BLANK,
+                TestConstants.ALERT_LASTNAME_SIZE,
+                TestConstants.ALERT_EMAIL_BLANK,
+                TestConstants.ALERT_SUBJECT_SIZE,
+                TestConstants.ALERT_PHONE_BLANK)), "Alert messages mismatch after entering first name.");
 
-        reservationPage.enterEmail(email)
-                .clickReserveNow();
+        // Enter last name
+        reservationPage.enterLastName(TestConstants.GUEST_LAST_NAME).clickReserveNow();
         Assert.assertTrue(reservationPage.getAllAlertMessages().containsAll(Arrays.asList(
-                "size must be between 11 and 21",
-                "must not be empty",
-                "must not be empty")), "Alert messages mismatch for empty fields.");
+                TestConstants.ALERT_PHONE_SIZE,
+                TestConstants.ALERT_LASTNAME_SIZE,
+                TestConstants.ALERT_EMAIL_BLANK,
+                TestConstants.ALERT_SUBJECT_SIZE,
+                TestConstants.ALERT_PHONE_BLANK)), "Alert messages mismatch after entering last name.");
 
-        reservationPage.enterPhoneNumber(invalidNumber)
-                .clickReserveNow();
+        // Enter email
+        reservationPage.enterEmail(TestConstants.GUEST_EMAIL).clickReserveNow();
         Assert.assertTrue(reservationPage.getAllAlertMessages().containsAll(Arrays.asList(
-                "size must be between 11 and 21")), "Alert messages mismatch for empty fields.");
+                TestConstants.ALERT_PHONE_SIZE,
+                TestConstants.ALERT_EMAIL_BLANK,
+                TestConstants.ALERT_PHONE_BLANK)), "Alert messages mismatch after entering email.");
 
-    }
-
-
-    @AfterMethod(alwaysRun = true)
-    public void tearDown() {
-        // playwright.close() disposes browser + context + pages gracefully in one shot.
-        // Closing context separately first causes ERR_ABORTED race when navigation is still in flight.
-        try { if (playwright != null) { playwright.close(); } } catch (Exception ignored) {}
-        playwright = null;
-        browser    = null;
-        context    = null;
-        page       = null;
+        // Enter phone number that exceeds max length
+        reservationPage.enterPhoneNumber(TestConstants.INVALID_PHONE_TOO_LONG).clickReserveNow();
+        Assert.assertTrue(reservationPage.getAllAlertMessages().containsAll(Arrays.asList(
+                TestConstants.ALERT_PHONE_SIZE)), "Alert message mismatch for oversized phone number.");
     }
 }
