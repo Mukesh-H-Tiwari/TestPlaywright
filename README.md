@@ -2,8 +2,6 @@
 
 Automation suite for [https://automationintesting.online/](https://automationintesting.online/) using Playwright (Java) + TestNG.
 
-**GitHub Repository:** [https://github.com/YOUR_USERNAME/TestPlaywright](https://github.com/YOUR_USERNAME/TestPlaywright) ← replace with your repo link
-
 ---
 
 ## What's covered
